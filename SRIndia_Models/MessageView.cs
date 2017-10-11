@@ -12,6 +12,6 @@ namespace SRIndia_Models
         public string Text { get; set; }
         public int CatId { get; set; }
         public int Type { get; set; }
-        public IFormFile File { get; set; }
+        public string ImgId { get; set; }
     }
 }

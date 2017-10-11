@@ -12,6 +12,8 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Hosting;
 using SRIndia_Models;
 using AutoMapper;
+using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MessageBoardBackend.Controllers
 {
@@ -40,40 +42,62 @@ namespace MessageBoardBackend.Controllers
             return context.Messages.Where(message => message.Owner == name);
         }
 
-        [HttpPost]
-        public Message Post([FromBody] MessageView message)
+        [HttpGet("message/{id}")]
+        public IEnumerable<Message> GetMessageBYId(string id)
         {
-            var newUser = Mapper.Map<Message>(message);
-            var dbMessage = context.Messages.Add(newUser).Entity;
+            return context.Messages.Where(message => message.Id == id);
+        }
+
+
+        [Authorize]
+        [HttpPost]
+        public Message Post([FromBody] JObject message)
+        {
+            dynamic jsonData = message;
+            MessageView messageobj = jsonData.ToObject<MessageView>();
+            var newMessage = Mapper.Map<Message>(messageobj);
+            newMessage.UserId = GetSecureUser().Id;
+            var dbMessage = context.Messages.Add(newMessage).Entity;
             context.SaveChanges();
-            //Upload(message.file);
             return dbMessage;
         }
 
         [HttpPost]
-        public Message FileUploade([FromBody] MessageView message)
+        [Route("upload")]
+        public UploadeResponse Upload(IFormFile file)
         {
-            var newUser = Mapper.Map<Message>(message);
-            var dbMessage = context.Messages.Add(newUser).Entity;
-            context.SaveChanges();
-            //Upload(message.file);
-            return dbMessage;
-        }
-
-        public void Upload(IFormFile file)
-        {
-            long size = 0;
-            var filename = ContentDispositionHeaderValue
-                        .Parse(file.ContentDisposition)
-                        .FileName
-                        .Trim('"');
-            filename = hostingEnv.WebRootPath + $@"\{filename}";
-            size += file.Length;
-            using (FileStream fs = System.IO.File.Create(filename))
+            var newId = Guid.NewGuid();
+            var imgId = string.Empty;
+            try
             {
-                file.CopyTo(fs);
-                fs.Flush();
+                long size = 0;
+
+                var filename = ContentDispositionHeaderValue
+                            .Parse(file.ContentDisposition)
+                            .FileName
+                            .Trim('"');
+                filename = newId + "_" + filename;
+                imgId = filename;
+                filename = hostingEnv.WebRootPath + "\\Images" + $@"\{filename}";
+                size += file.Length;
+                using (FileStream fs = System.IO.File.Create(filename))
+                {
+                    file.CopyTo(fs);
+                    fs.Flush();
+                }
             }
+            catch (Exception ex)
+            {
+                return new UploadeResponse { ImageID = imgId, Success = false };
+            }
+            return new UploadeResponse { ImageID = imgId, Success = true };
+        }
+
+        User GetSecureUser()
+        {
+            var id = HttpContext.User.Claims.First().Value;
+            var newUser = Mapper.Map<User>(context.Users.SingleOrDefault(u => u.Id == id));
+            return newUser;
         }
     }
 }
