@@ -15,6 +15,6 @@ namespace SRIndia_Repository
         }
 
         public DbSet<Message> Messages { get; set; }
-        public DbSet<MessageReply> ReplyMessages { get; set; }
+        public DbSet<MessageReply> MessageReply { get; set; }
     }
 }

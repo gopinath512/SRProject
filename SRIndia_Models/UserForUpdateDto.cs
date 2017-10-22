@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SRIndia_Models
 {
-    public class EditProfileData
+    public class UserForUpdateDto
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }

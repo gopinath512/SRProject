@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace SRIndia_Models
 {
-    public class User
+    public class UserDto
     {
         public string Id { get; set; }
         public string FirstName { get; set; }

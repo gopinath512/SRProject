@@ -10,17 +10,23 @@ namespace SRIndiaInfo_Services
     {
         bool MessageExists(string messageId);
 
-        IEnumerable<Message> GetMessages();
+        void AddMessage(Message message);
 
-        IEnumerable<Message> GetMessagesByMessageId(string strMessageId);
+        void AddMessageReply(string strMessageId, MessageReply messageReply);
+
+        void DeleteMessage(Message message);
+
+        void DeleteReply(MessageReply reply);
+
+        IEnumerable<Message> GetMessagesByTypes(MessageTypes objMessageTypes, string strId = null);
+
+        IEnumerable<Message> GetMessagesByMessageId(string strMessageId, bool includeReplies);
+
+        MessageReply GetMessagesReplyMessageId(string strMessageId, string strReplyId);
 
         IEnumerable<Message> GetMessagesByUserId(string strUserId);
 
-        IEnumerable<Message> GetMessagesByTypes(MessageTypes objMessageTypes,string strId = null);
-
-        Message AddMessage(Message message);
-        
-        void DeleteMessage(Message message);
+        IEnumerable<Message> GetMessages();
 
         bool Save();
     }

@@ -21,6 +21,10 @@ namespace SRIndia_Repository
         public Message Message { get; set; }
         public string MessageId { get; set; }
 
+        [Required]
+        public string ReplyId { get; set; }
+
+        [Required]
         public string ReplyUserId { get; set; }
 
         [Required]
