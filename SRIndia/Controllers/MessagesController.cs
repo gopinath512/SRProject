@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SRIndia_Repository;
-using SRIndia_Models.Models;
-using Microsoft.AspNetCore.Cors;
-using System.IO;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using Microsoft.AspNetCore.Hosting;
-using SRIndia_Models;
-using AutoMapper;
 using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Authorization;
+using SRIndia_Models;
+using SRIndia_Repository;
+using SRIndiaInfo_Services;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace MessageBoardBackend.Controllers
 {
@@ -22,51 +22,74 @@ namespace MessageBoardBackend.Controllers
     [EnableCors("Cors")]
     public class MessagesController : Controller
     {
-        readonly SRIndiaContext context;
-        private IHostingEnvironment hostingEnv;
+        private IMessageInfoRepository _messageInfoRepository;
+        private IUserInfoRepository _userInfoRepository;
+        private IHostingEnvironment _hostingEnv;
+        private ILogger<MessagesController> _logger;
 
-        public MessagesController(SRIndiaContext context, IHostingEnvironment env)
+        public MessagesController(IMessageInfoRepository messageContext, IUserInfoRepository userContext, IHostingEnvironment env)
         {
-            this.context = context;
-            this.hostingEnv = env;
+            _messageInfoRepository = messageContext;
+            _userInfoRepository = userContext;
+            _hostingEnv = env;
         }
 
-        public IEnumerable<Message> Get()
+        [HttpGet()]
+        public IActionResult Get()
         {
-            return context.Messages;
+            var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.All);
+            var results = Mapper.Map<IEnumerable<MessageView>>(MessageEntity);
+            return Ok(results);
         }
 
-        [HttpGet("{name}")]
-        public IEnumerable<Message> Get(string name)
+        [HttpGet("byuser")]
+        [Authorize]
+        public IActionResult GetMessageByUser()
         {
-            return context.Messages.Where(message => message.Owner == name);
+            var userId = HttpContext.User.Claims.First().Value;
+            if(userId == null)
+            {
+                return NotFound("User id is empty");
+            }
+
+            var MessageEntity =  _messageInfoRepository.GetMessagesByTypes(MessageTypes.UserId, userId);
+            var results = Mapper.Map<IEnumerable<MessageView>>(MessageEntity);
+            return Ok(results);
         }
 
-        [HttpGet("message/{id}")]
-        public IEnumerable<Message> GetMessageBYId(string id)
+        [HttpGet("{messageid}")]
+        public IActionResult GetMessageBYId(string messageid)
         {
-            return context.Messages.Where(message => message.Id == id);
+            var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.MessageId, messageid);
+            var results = Mapper.Map<IEnumerable<MessageView>>(MessageEntity);
+            return Ok(results);
         }
 
 
         [Authorize]
         [HttpPost]
-        public Message Post([FromBody] JObject message)
+        public IActionResult Post([FromBody] JObject message)
         {
-            dynamic jsonData = message;
-            MessageView messageobj = jsonData.ToObject<MessageView>();
-            var newMessage = Mapper.Map<Message>(messageobj);
-            newMessage.UserId = GetSecureUser().Id;
-            var dbMessage = context.Messages.Add(newMessage).Entity;
-            context.SaveChanges();
-            return dbMessage;
+            try
+            {
+                MessageView messageobj = message.ToObject<MessageView>();
+                var newMessage = Mapper.Map<Message>(messageobj);
+                newMessage.UserId = GetSecureUserId() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(newMessage.UserId)) { return NotFound("User Id not found"); }
+                var dbMessage = _messageInfoRepository.AddMessage(newMessage);
+                return Ok(dbMessage);
+            }
+            catch(Exception ex) {
+                _logger.LogCritical($"Exception while adding new message.", ex);
+                return StatusCode(500, "A problem happened while handling your request.");
+            }
+           
         }
 
         [HttpPost]
         [Route("upload")]
-        public UploadeResponse Upload(IFormFile file)
+        public IActionResult Upload(IFormFile file)
         {
-            var newId = Guid.NewGuid();
             var imgId = string.Empty;
             try
             {
@@ -76,9 +99,9 @@ namespace MessageBoardBackend.Controllers
                             .Parse(file.ContentDisposition)
                             .FileName
                             .Trim('"');
-                filename = newId + "_" + filename;
+                filename = Guid.NewGuid() + "_" + filename;
                 imgId = filename;
-                filename = hostingEnv.WebRootPath + "\\Images" + $@"\{filename}";
+                filename = _hostingEnv.WebRootPath + "\\Images" + $@"\{filename}";
                 size += file.Length;
                 using (FileStream fs = System.IO.File.Create(filename))
                 {
@@ -88,16 +111,20 @@ namespace MessageBoardBackend.Controllers
             }
             catch (Exception ex)
             {
-                return new UploadeResponse { ImageID = imgId, Success = false };
+                _logger.LogCritical($"Exception while uploading image.", ex);
+                return StatusCode(500, new UploadeResponse { ImageID = imgId, Success = false, ErrorDescription = ex.Message });
             }
-            return new UploadeResponse { ImageID = imgId, Success = true };
+            return Ok(new UploadeResponse { ImageID = imgId, Success = true });
         }
 
-        User GetSecureUser()
+        string GetSecureUserId()
         {
             var id = HttpContext.User.Claims.First().Value;
-            var newUser = Mapper.Map<User>(context.Users.SingleOrDefault(u => u.Id == id));
-            return newUser;
+            if(_userInfoRepository.UserExists(id))
+            {
+                return id;
+            }
+            return null;
         }
     }
 }

@@ -1,20 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using SRIndia_Repository;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
 using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using SRIndia_Models.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using SRIndia_Models;
+using SRIndia_Repository;
+using SRIndiaInfo_Services;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace SRIndia.Controllers
 {
@@ -36,33 +30,38 @@ namespace SRIndia.Controllers
     [EnableCors("Cors")]
     public class AuthController : Controller
     {
-        readonly SRIndiaContext context;
 
-        public AuthController(SRIndiaContext context)
+        private IUserInfoRepository _userInfoRepository;
+
+        public AuthController(IUserInfoRepository userInfoRepository)
         {
-            this.context = context;
+            _userInfoRepository = userInfoRepository;
         }
 
         [HttpPost("login")]
 
         public ActionResult Login([FromBody] LoginData loginData)
         {
-            var user = context.Users.SingleOrDefault(u => u.Email == loginData.Email && u.PasswordHash == loginData.Password);
-            var newUser = Mapper.Map<User>(user);
-            if (user == null)
+            var userEntity = _userInfoRepository.GetUserWithLogin(loginData.Email , loginData.Password);
+            var newUser = Mapper.Map<User>(userEntity);
+            if (userEntity == null)
                 return NotFound("email or password incorrect");
 
             return Ok(CreateJwtPacket(newUser));
         }
 
         [HttpPost("register")]
-        public JwtPacket Register([FromBody]User user)
+        public ActionResult Register([FromBody]User user)
         {
             user.Id = Guid.NewGuid().ToString();
-            var newUser = Mapper.Map<AppUser>(user);
-            context.Users.Add(newUser);
-            context.SaveChanges();
-            return CreateJwtPacket(user);
+            var newUserEntity = Mapper.Map<AppUser>(user);
+            _userInfoRepository.AddUser(newUserEntity);
+
+            if (!_userInfoRepository.Save())
+            {
+                return StatusCode(500, "A problem happened while handling your request. Not able to register.");
+            }
+            return Ok(CreateJwtPacket(user));
         }
 
         //[HttpPost("aspregister")]

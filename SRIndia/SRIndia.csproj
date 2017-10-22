@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="wwwroot\Images\" />
     <Folder Include="wwwroot\Images\" />
   </ItemGroup>
@@ -30,11 +31,10 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.1.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SRIndia_Models\SRIndia_Models.csproj" />
-    <ProjectReference Include="..\SRIndia_Repository\SRIndia_Repository.csproj" />
+    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
+    <ProjectReference Include="..\SRIndiaInfo_Services\SRIndiaInfo_Services.csproj" />
   </ItemGroup>
 
 </Project>

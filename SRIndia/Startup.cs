@@ -8,21 +8,22 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using SRIndia_Repository;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using AutoMapper;
-using SRIndia_Models.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using SRIndia_Models;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using SRIndiaInfo_Services;
+using SRIndia_Repository;
+using SRIndia_Models;
 
 namespace SRIndia
 {
     public class Startup
     {
+        
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -30,10 +31,9 @@ namespace SRIndia
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            _Configuration = builder.Build();
         }
-
-        public IConfigurationRoot Configuration { get; }
+        public IConfigurationRoot _Configuration { get;  }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -44,7 +44,15 @@ namespace SRIndia
                 config.Password.RequiredLength = 8;
             }).AddEntityFrameworkStores<SRIndiaContext>();
 
-            services.AddEntityFrameworkSqlServer().AddDbContext<SRIndiaContext>(opt => opt.UseSqlServer(Configuration["ConnectionStrings:SRIndiaConnection"], b => b.MigrationsAssembly("SRIndia")));
+            
+            services.AddEntityFrameworkSqlServer().AddDbContext<SRIndiaContext>(opt => opt.UseSqlServer(_Configuration["ConnectionStrings:SRIndiaConnection"], b => b.MigrationsAssembly("SRIndia")));
+
+            //var connectionString = Startup._Configuration["connectionStrings:cityInfoDBConnectionString"];
+            //services.AddDbContext<SRIndiaContext>(o => o.UseSqlServer(connectionString));
+
+            services.AddScoped<IMessageInfoRepository, MessageInfoRepository>();
+            services.AddScoped<IUserInfoRepository, UserInfoRepository>();
+
             // Add framework services.
             services.AddCors(options => options.AddPolicy("Cors", builder =>
             {
@@ -73,13 +81,15 @@ namespace SRIndia
                     Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot", "images")),
                 RequestPath = new PathString("/Images")
             });
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            loggerFactory.AddConsole(_Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
             Mapper.Initialize(config =>
             {
                 config.CreateMap<User, AppUser>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.Password)).ReverseMap();
-                config.CreateMap<MessageView, Message>();
+                config.CreateMap<Message, MessageView > ();
+                config.CreateMap<User, AppUser>();
+                config.CreateMap<AppUser, EditProfileData > ();
             });
 
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("this is the secret phrase"));
