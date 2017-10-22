@@ -8,9 +8,10 @@ using SRIndia_Repository;
 namespace SRIndia.Migrations
 {
     [DbContext(typeof(SRIndiaContext))]
-    partial class SRIndiaContextModelSnapshot : ModelSnapshot
+    [Migration("20171022085016__v2")]
+    partial class _v2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2")
@@ -223,9 +224,6 @@ namespace SRIndia.Migrations
                         .IsRequired();
 
                     b.Property<string>("Owner")
-                        .IsRequired();
-
-                    b.Property<string>("ReplyId")
                         .IsRequired();
 
                     b.Property<string>("ReplyUserId")

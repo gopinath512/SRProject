@@ -27,7 +27,7 @@ namespace MessageBoardBackend.Controllers
         [HttpGet("{id}")]
         public ActionResult Get(string id)
         {
-            var user = Mapper.Map<User>(GetSecureUser());
+            var user = Mapper.Map<UserDto>(GetSecureUser());
 
             if (user == null)
                 return NotFound("User not found");
@@ -39,12 +39,12 @@ namespace MessageBoardBackend.Controllers
         [HttpGet("me")]
         public ActionResult Get()
         {
-            return Ok(Mapper.Map<User>(GetSecureUser()));
+            return Ok(Mapper.Map<UserDto>(GetSecureUser()));
         }
 
         [Authorize]
         [HttpPost("me")]
-        public ActionResult Post([FromBody] EditProfileData profileData)
+        public ActionResult Post([FromBody] UserForUpdateDto profileData)
         {
             var userEntity = GetSecureUser();
             Mapper.Map(profileData, userEntity);

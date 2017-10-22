@@ -36,5 +36,8 @@ namespace SRIndia_Repository
 
         [Required]
         public string UserId { get; set; }
+
+        public ICollection<MessageReply> MessageReply { get; set; }
+       = new List<MessageReply>();
     }
 }

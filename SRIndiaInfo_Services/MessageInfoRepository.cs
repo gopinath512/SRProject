@@ -4,6 +4,7 @@ using System.Text;
 using SRIndia_Repository;
 using System.Linq;
 using SRIndia_Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace SRIndiaInfo_Services
 {
@@ -22,16 +23,26 @@ namespace SRIndiaInfo_Services
             return _context.Messages.Any(c => c.Id == messageId);
         }
 
-        public Message AddMessage(Message message)
+
+        public void AddMessage(Message message)
         {
-           var obj= _context.Messages.Add(message).Entity;
-            _context.SaveChanges();
-            return obj;
+            _context.Messages.Add(message);
+        }
+
+        public void AddMessageReply(string strMessageId, MessageReply messageReply)
+        {
+            var Message = GetMessagesByMessageId(strMessageId,true).FirstOrDefault();
+            Message.MessageReply.Add(messageReply);
         }
 
         public void DeleteMessage(Message message)
         {
             _context.Messages.Remove(message);
+        }
+
+        public void DeleteReply(MessageReply reply)
+        {
+            _context.MessageReply.Remove(reply);
         }
 
         public IEnumerable<Message> GetMessagesByTypes(MessageTypes objMessageTypes, string strId = null)
@@ -44,7 +55,7 @@ namespace SRIndiaInfo_Services
                     objResult = GetMessages();
                     break;
                 case MessageTypes.MessageId:
-                    objResult = GetMessagesByMessageId(strId);
+                    objResult = GetMessagesByMessageId(strId, false);
                     break;
                 case MessageTypes.UserId:
                     objResult = GetMessagesByUserId(strId);
@@ -58,9 +69,19 @@ namespace SRIndiaInfo_Services
         }
 
 
-        public IEnumerable<Message> GetMessagesByMessageId(string strMessageId)
+        public IEnumerable<Message> GetMessagesByMessageId(string strMessageId, bool includeReplies)
         {
+            if(includeReplies)
+            {
+                return _context.Messages.Include(c => c.MessageReply)
+                    .Where(c => c.Id == strMessageId).ToList();
+            }
             return _context.Messages.Where(c => c.Id == strMessageId).ToList();
+        }
+
+        public MessageReply GetMessagesReplyMessageId(string strMessageId, string strReplyId)
+        {
+                return _context.MessageReply.Where(m => m.Id == strReplyId && m.MessageId == strMessageId).FirstOrDefault();
         }
 
         public IEnumerable<Message> GetMessagesByUserId(string strUserId)

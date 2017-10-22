@@ -27,18 +27,20 @@ namespace MessageBoardBackend.Controllers
         private IHostingEnvironment _hostingEnv;
         private ILogger<MessagesController> _logger;
 
-        public MessagesController(IMessageInfoRepository messageContext, IUserInfoRepository userContext, IHostingEnvironment env)
+        public MessagesController(IMessageInfoRepository messageContext, IUserInfoRepository userContext, IHostingEnvironment env, ILogger<MessagesController> logger)
         {
             _messageInfoRepository = messageContext;
             _userInfoRepository = userContext;
             _hostingEnv = env;
+            _logger = logger;
         }
 
         [HttpGet()]
         public IActionResult Get()
         {
             var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.All);
-            var results = Mapper.Map<IEnumerable<MessageView>>(MessageEntity);
+            var results = Mapper.Map<IEnumerable<MessageDto>>(MessageEntity);
+            _logger.LogCritical($"Exception while adding new message.", "test");
             return Ok(results);
         }
 
@@ -53,15 +55,24 @@ namespace MessageBoardBackend.Controllers
             }
 
             var MessageEntity =  _messageInfoRepository.GetMessagesByTypes(MessageTypes.UserId, userId);
-            var results = Mapper.Map<IEnumerable<MessageView>>(MessageEntity);
+            var results = Mapper.Map<IEnumerable<MessageDto>>(MessageEntity);
             return Ok(results);
         }
 
+        //[HttpGet("{messageid}")]
+        //public IActionResult GetMessageBYId(string messageid)
+        //{
+        //    var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.MessageId, messageid);
+        //    var results = Mapper.Map<IEnumerable<MessageDto>>(MessageEntity);
+        //    return Ok(results);
+        //}
+
         [HttpGet("{messageid}")]
-        public IActionResult GetMessageBYId(string messageid)
+        public IActionResult GetMessagesByMessageId(string messageId)
         {
-            var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.MessageId, messageid);
-            var results = Mapper.Map<IEnumerable<MessageView>>(MessageEntity);
+            var MessageEntity = _messageInfoRepository.GetMessagesByMessageId(messageId,true);
+           
+            var results = Mapper.Map<MessageAlongWithReplyDto>(MessageEntity.FirstOrDefault());
             return Ok(results);
         }
 
@@ -72,18 +83,45 @@ namespace MessageBoardBackend.Controllers
         {
             try
             {
-                MessageView messageobj = message.ToObject<MessageView>();
+                MessageForCreationDto messageobj = message.ToObject<MessageForCreationDto>();
                 var newMessage = Mapper.Map<Message>(messageobj);
                 newMessage.UserId = GetSecureUserId() ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(newMessage.UserId)) { return NotFound("User Id not found"); }
-                var dbMessage = _messageInfoRepository.AddMessage(newMessage);
-                return Ok(dbMessage);
+                _messageInfoRepository.AddMessage(newMessage);
+                if (!_messageInfoRepository.Save())
+                {
+                    return StatusCode(500, new UploadeResponse { Success = false, ErrorDescription = "Error while creating message" });
+                }
+                return Ok(newMessage);
             }
             catch(Exception ex) {
                 _logger.LogCritical($"Exception while adding new message.", ex);
                 return StatusCode(500, "A problem happened while handling your request.");
             }
            
+        }
+
+        [Authorize]
+        [HttpPost]
+        public IActionResult UpdateMessage([FromBody] JObject message, string messageid)
+        {
+            try
+            {
+                var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.MessageId, messageid);
+                MessageForUpdateDto messageobj = message.ToObject<MessageForUpdateDto>();
+                Mapper.Map(messageobj, MessageEntity);
+                if (!_messageInfoRepository.Save())
+                {
+                    return StatusCode(500, new UploadeResponse { Success = false, ErrorDescription = "Error while updating message" });
+                }
+                return Ok(MessageEntity);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical($"Exception while updating  message.", ex);
+                return StatusCode(500, "A problem happened while handling your request.");
+            }
+
         }
 
         [HttpPost]

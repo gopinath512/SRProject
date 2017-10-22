@@ -43,7 +43,7 @@ namespace SRIndia.Controllers
         public ActionResult Login([FromBody] LoginData loginData)
         {
             var userEntity = _userInfoRepository.GetUserWithLogin(loginData.Email , loginData.Password);
-            var newUser = Mapper.Map<User>(userEntity);
+            var newUser = Mapper.Map<UserDto>(userEntity);
             if (userEntity == null)
                 return NotFound("email or password incorrect");
 
@@ -51,7 +51,7 @@ namespace SRIndia.Controllers
         }
 
         [HttpPost("register")]
-        public ActionResult Register([FromBody]User user)
+        public ActionResult Register([FromBody]UserDto user)
         {
             user.Id = Guid.NewGuid().ToString();
             var newUserEntity = Mapper.Map<AppUser>(user);
@@ -74,7 +74,7 @@ namespace SRIndia.Controllers
         //    return CreateJwtPacket(user);
         //}
 
-        JwtPacket CreateJwtPacket(User user)
+        JwtPacket CreateJwtPacket(UserDto user)
         {
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("this is the secret phrase"));
 
