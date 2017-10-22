@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SRIndia_Models.Models
+namespace SRIndia_Models
 {
     public class User
     {

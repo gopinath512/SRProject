@@ -1,39 +1,33 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+using SRIndia_Models;
 using SRIndia_Repository;
-using AutoMapper;
-using SRIndia_Models.Models;
-using Microsoft.AspNetCore.Cors;
+using SRIndiaInfo_Services;
+using System.Linq;
 
 namespace MessageBoardBackend.Controllers
 {
-    public class EditProfileData
-    {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-    }
+   
 
     [Produces("application/json")]
     [Route("api/Users")]
     [EnableCors("Cors")]
     public class UsersController : Controller
     {
-        readonly SRIndiaContext context;
+        private IUserInfoRepository _userInfoRepository;
 
-        public UsersController(SRIndiaContext context)
+        public UsersController(IUserInfoRepository userInfoRepository)
         {
-            this.context = context;
+            _userInfoRepository = userInfoRepository;
         }
 
         [HttpGet("{id}")]
         public ActionResult Get(string id)
         {
-            var user = context.Users.SingleOrDefault(u => u.Id == id);
+            var user = Mapper.Map<User>(GetSecureUser());
 
             if (user == null)
                 return NotFound("User not found");
@@ -45,27 +39,27 @@ namespace MessageBoardBackend.Controllers
         [HttpGet("me")]
         public ActionResult Get()
         {
-            return Ok(GetSecureUser());
+            return Ok(Mapper.Map<User>(GetSecureUser()));
         }
 
         [Authorize]
         [HttpPost("me")]
         public ActionResult Post([FromBody] EditProfileData profileData)
         {
-            var user = GetSecureUser();
+            var userEntity = GetSecureUser();
+            Mapper.Map(profileData, userEntity);
+           if(!_userInfoRepository.Save())
+            {
+                return StatusCode(500, new UploadeResponse { Success = false, ErrorDescription = "Error while saving while updating" });
+            }
 
-            user.FirstName = profileData.FirstName ?? user.FirstName;
-            user.LastName = profileData.LastName ?? user.LastName;
-
-            context.SaveChanges();
-
-            return Ok(user);
+            return Ok(userEntity);
         }
 
-        User GetSecureUser()
+        AppUser GetSecureUser()
         {
             var id = HttpContext.User.Claims.First().Value;
-            var newUser = Mapper.Map<User>(context.Users.SingleOrDefault(u => u.Id == id));
+            var newUser = (_userInfoRepository.GetUser(id));
             return newUser;
         }
     }

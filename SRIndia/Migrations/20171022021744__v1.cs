@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace SRIndia.Migrations
 {
-    public partial class v1 : Migration
+    public partial class _v1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -52,6 +52,7 @@ namespace SRIndia.Migrations
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
                     NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
+                    Password = table.Column<string>(nullable: true),
                     PasswordHash = table.Column<string>(nullable: true),
                     PhoneNumber = table.Column<string>(nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(nullable: false),
@@ -150,6 +151,51 @@ namespace SRIndia.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Messages",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    CatId = table.Column<int>(maxLength: 3, nullable: false),
+                    ImgId = table.Column<string>(nullable: false),
+                    Owner = table.Column<string>(maxLength: 50, nullable: false),
+                    Text = table.Column<string>(maxLength: 200, nullable: false),
+                    Type = table.Column<int>(maxLength: 3, nullable: false),
+                    UserId = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Messages_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReplyMessages",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    ImgId = table.Column<string>(nullable: false),
+                    MessageId = table.Column<string>(nullable: false),
+                    Owner = table.Column<string>(nullable: false),
+                    ReplyUserId = table.Column<string>(nullable: true),
+                    Text = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReplyMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReplyMessages_Messages_MessageId",
+                        column: x => x.MessageId,
+                        principalTable: "Messages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
@@ -186,6 +232,16 @@ namespace SRIndia.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Messages_UserId",
+                table: "Messages",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReplyMessages_MessageId",
+                table: "ReplyMessages",
+                column: "MessageId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -206,7 +262,13 @@ namespace SRIndia.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ReplyMessages");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Messages");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

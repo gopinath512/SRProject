@@ -123,28 +123,6 @@ namespace SRIndia.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("SRIndia_Models.Models.Message", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("CatId");
-
-                    b.Property<string>("ImgId");
-
-                    b.Property<string>("Owner");
-
-                    b.Property<string>("Text");
-
-                    b.Property<int>("Type");
-
-                    b.Property<string>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Messages");
-                });
-
             modelBuilder.Entity("SRIndia_Repository.AppUser", b =>
                 {
                     b.Property<string>("Id")
@@ -201,6 +179,64 @@ namespace SRIndia.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("SRIndia_Repository.Message", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("CatId")
+                        .HasMaxLength(3);
+
+                    b.Property<string>("ImgId")
+                        .IsRequired();
+
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(200);
+
+                    b.Property<int>("Type")
+                        .HasMaxLength(3);
+
+                    b.Property<string>("UserId")
+                        .IsRequired();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("SRIndia_Repository.MessageReply", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ImgId")
+                        .IsRequired();
+
+                    b.Property<string>("MessageId")
+                        .IsRequired();
+
+                    b.Property<string>("Owner")
+                        .IsRequired();
+
+                    b.Property<string>("ReplyUserId");
+
+                    b.Property<string>("Text")
+                        .IsRequired();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId");
+
+                    b.ToTable("ReplyMessages");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRole")
@@ -235,6 +271,22 @@ namespace SRIndia.Migrations
                     b.HasOne("SRIndia_Repository.AppUser")
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SRIndia_Repository.Message", b =>
+                {
+                    b.HasOne("SRIndia_Repository.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SRIndia_Repository.MessageReply", b =>
+                {
+                    b.HasOne("SRIndia_Repository.Message", "Message")
+                        .WithMany()
+                        .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
         }
