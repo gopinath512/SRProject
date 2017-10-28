@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using SRIndia_Repository;
-
 using System.Linq;
-using SRIndia_Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace SRIndiaInfo_Services
 {
-    public class UserInfoRepository : IUserInfoRepository
+    public class UserInfoRepository : PasswordHasher<AppUser>, IUserInfoRepository
     {
         private SRIndiaContext _context;
         public UserInfoRepository(SRIndiaContext context)
@@ -21,14 +19,28 @@ namespace SRIndiaInfo_Services
             return _context.Users.Any(i => i.Id == userId);
         }
 
-        public AppUser GetUserWithLogin(string userId, string strPassword)
+        public AppUser GetUserWithLogin(string emailId, string strPassword)
         {
-           return _context.Users.SingleOrDefault(u => u.Email == userId && u.PasswordHash == strPassword);
+            var appUser = GetUserByEmail(emailId);
+
+            if (appUser != null)
+                if (base.VerifyHashedPassword(appUser, appUser.PasswordHash, strPassword) == PasswordVerificationResult.Success)
+                    return appUser;
+
+            return null;
         }
 
-        public void AddUser(AppUser appUser)
+        public AppUser AddUser(AppUser appUser)
         {
-            _context.Users.Add(appUser);
+            var objUserResult = GetUserByEmail(appUser.Email);
+            if (objUserResult == null)
+            {
+                appUser.PasswordHash = base.HashPassword(appUser, appUser.PasswordHash);
+                _context.Users.Add(appUser);
+                return appUser;
+            }
+
+            return null;
         }
 
         public void DeleteUser(AppUser appUser)
@@ -36,9 +48,14 @@ namespace SRIndiaInfo_Services
             _context.Users.Remove(appUser);
         }
 
-        public AppUser GetUser(string userId)
+        public AppUser GetUserByUserId(string userId)
         {
             return _context.Users.SingleOrDefault(i => i.Id == userId);
+        }
+
+        private AppUser GetUserByEmail(string emailId)
+        {
+            return _context.Users.SingleOrDefault(i => i.Email == emailId);
         }
 
         public IEnumerable<AppUser> GetUsers()

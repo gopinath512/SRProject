@@ -12,8 +12,18 @@ namespace SRIndia_Repository
         public string Id { get; set; }
 
         [Required]
+        public int MessageNumber { get; set; }
+
+        [Required]
         [MaxLength(50)]
         public string Owner { get; set; }
+
+        public int ReplyCount { get; set; }
+        public int ClickCount { get; set; }
+
+        [Required]
+        [MaxLength(200)]
+        public string Topic { get; set; }
 
         [Required]
         [MaxLength(200)]
@@ -36,6 +46,12 @@ namespace SRIndia_Repository
 
         [Required]
         public string UserId { get; set; }
+
+        [Required]
+        public DateTime CreatedDate { get; set; }
+
+        [Required]
+        public DateTime ModifiedDate { get; set; }
 
         public ICollection<MessageReply> MessageReply { get; set; }
        = new List<MessageReply>();

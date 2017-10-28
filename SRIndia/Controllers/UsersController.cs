@@ -59,7 +59,7 @@ namespace MessageBoardBackend.Controllers
         AppUser GetSecureUser()
         {
             var id = HttpContext.User.Claims.First().Value;
-            var newUser = (_userInfoRepository.GetUser(id));
+            var newUser = (_userInfoRepository.GetUserByUserId(id));
             return newUser;
         }
     }

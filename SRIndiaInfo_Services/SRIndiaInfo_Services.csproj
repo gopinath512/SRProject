@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SRIndia_Models\SRIndia_Models.csproj" />
     <ProjectReference Include="..\SRIndia_Repository\SRIndia_Repository.csproj" />
   </ItemGroup>
 

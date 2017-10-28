@@ -9,13 +9,13 @@ namespace SRIndiaInfo_Services
     {
         bool UserExists(string userId);
 
-        AppUser GetUserWithLogin(string userId, string strPassword);
+        AppUser GetUserWithLogin(string emailId, string strPassword);
 
         IEnumerable<AppUser> GetUsers();
 
-        AppUser GetUser(string userId);
+        AppUser GetUserByUserId(string userId);
 
-        void AddUser(AppUser appUser);
+        AppUser AddUser(AppUser appUser);
 
         void DeleteUser(AppUser appUser);
 

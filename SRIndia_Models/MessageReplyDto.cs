@@ -14,7 +14,7 @@ namespace SRIndia_Models
 
         public string MessageId { get; set; }
 
-        public string ReplyrId { get; set; }
+        public int ReplyNumber { get; set; }
 
         public string ReplyUserId { get; set; }
 

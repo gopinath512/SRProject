@@ -10,7 +10,4 @@
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SRIndia_Models\SRIndia_Models.csproj" />
-  </ItemGroup>
 </Project>

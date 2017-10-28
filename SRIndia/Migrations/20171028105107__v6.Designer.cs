@@ -8,9 +8,10 @@ using SRIndia_Repository;
 namespace SRIndia.Migrations
 {
     [DbContext(typeof(SRIndiaContext))]
-    partial class SRIndiaContextModelSnapshot : ModelSnapshot
+    [Migration("20171028105107__v6")]
+    partial class _v6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2")
