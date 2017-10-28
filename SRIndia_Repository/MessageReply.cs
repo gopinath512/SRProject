@@ -22,13 +22,16 @@ namespace SRIndia_Repository
         public string MessageId { get; set; }
 
         [Required]
-        public string ReplyId { get; set; }
+        public int ReplyNumber { get; set; }
 
         [Required]
         public string ReplyUserId { get; set; }
 
         [Required]
         public string ImgId { get; set; }
-        
+
+        [Required]
+        public DateTime CreatedDate { get; set; }
+
     }
 }

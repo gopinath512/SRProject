@@ -6,6 +6,7 @@ namespace SRIndia_Models
 {
     public class MessageForUpdateDto
     {
+        public string Topic { get; set; }
         public string Text { get; set; }
     }
 }

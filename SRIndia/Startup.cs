@@ -86,7 +86,8 @@ namespace SRIndia
 
             Mapper.Initialize(config =>
             {
-                config.CreateMap<UserDto, AppUser>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.Password)).ReverseMap();
+                config.CreateMap<UserDto, AppUser>().ReverseMap();
+                config.CreateMap<UserForCreationDto, AppUser > ();
                 config.CreateMap<Message, MessageDto > ();
                 config.CreateMap<UserDto, AppUser>();
                 config.CreateMap<AppUser, UserForUpdateDto> ();
@@ -111,7 +112,7 @@ namespace SRIndia
             });
             app.UseCors("Cors");
             app.UseMvc();
-            SeedData(app.ApplicationServices.GetService<SRIndiaContext>());
+            //SeedData(app.ApplicationServices.GetService<SRIndiaContext>());
         }
 
         public void SeedData(SRIndiaContext context)
@@ -137,15 +138,15 @@ namespace SRIndia
             //    UserId = "22c328d9-6dd3-404d-8a02-d4f9f4dd9022"
             //});
 
-            context.MessageReply.Add(new MessageReply
-            {
-                Owner = "Tim",
-                Text = "Hi",
-                MessageId = "26e6e895-a221-416f-8032-5404f2be0e1a",
-                ReplyId = "14294b1c-ec30-4e60-aded-9b48aceec254",
-                ReplyUserId = "22c328d9-6dd3-404d-8a02-d4f9f4dd9022",
-                ImgId = new Guid().ToString()                
-            });
+            //context.MessageReply.Add(new MessageReply
+            //{
+            //    Owner = "Tim",
+            //    Text = "Hi",
+            //    MessageId = "26e6e895-a221-416f-8032-5404f2be0e1a",
+            //    ReplyNumber = "14294b1c-ec30-4e60-aded-9b48aceec254",
+            //    ReplyUserId = "22c328d9-6dd3-404d-8a02-d4f9f4dd9022",
+            //    ImgId = new Guid().ToString()                
+            //});
 
             //context.MessageReply.Add(new MessageReply
             //{

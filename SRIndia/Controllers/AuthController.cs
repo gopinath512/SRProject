@@ -19,12 +19,6 @@ namespace SRIndia.Controllers
         public string FirstName { get; set; }
     }
 
-    public class LoginData
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-
     [Produces("application/json")]
     [Route("Auth")]
     [EnableCors("Cors")]
@@ -40,41 +34,34 @@ namespace SRIndia.Controllers
 
         [HttpPost("login")]
 
-        public ActionResult Login([FromBody] LoginData loginData)
+        public ActionResult Login([FromBody] UserLoginDto loginData)
         {
             var userEntity = _userInfoRepository.GetUserWithLogin(loginData.Email , loginData.Password);
-            var newUser = Mapper.Map<UserDto>(userEntity);
             if (userEntity == null)
                 return NotFound("email or password incorrect");
 
-            return Ok(CreateJwtPacket(newUser));
+            var newUser = Mapper.Map<UserDto>(userEntity);
+            return Ok(CreateJwtPacket(newUser.Id, newUser.FirstName));
         }
-
+       
         [HttpPost("register")]
-        public ActionResult Register([FromBody]UserDto user)
+        public ActionResult Register([FromBody]UserForCreationDto user)
         {
             user.Id = Guid.NewGuid().ToString();
-            var newUserEntity = Mapper.Map<AppUser>(user);
-            _userInfoRepository.AddUser(newUserEntity);
-
+            var newUserEntity = Mapper.Map<AppUser>(user); 
+            var result = _userInfoRepository.AddUser(newUserEntity);
+            if(result == null)
+            {
+                return StatusCode(500, "This email already exists. Not able to register.");
+            }
             if (!_userInfoRepository.Save())
             {
                 return StatusCode(500, "A problem happened while handling your request. Not able to register.");
             }
-            return Ok(CreateJwtPacket(user));
+            return Ok(CreateJwtPacket(user.Id,user.FirstName));
         }
 
-        //[HttpPost("aspregister")]
-        //public async Task<JwtPacket> AspRegister([FromBody]Models.User user)
-        //{
-        //    var newuser = Mapper.Map<AppUser>(user);
-        //    // context.users.add(newuser);
-        //    // context.savechanges();
-        //    var result = await _userManager.CreateAsync(newuser);
-        //    return CreateJwtPacket(user);
-        //}
-
-        JwtPacket CreateJwtPacket(UserDto user)
+        JwtPacket CreateJwtPacket(string strUserId, string strFirstName)
         {
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("this is the secret phrase"));
 
@@ -82,14 +69,14 @@ namespace SRIndia.Controllers
 
             var claims = new Claim[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id)
+                new Claim(JwtRegisteredClaimNames.Sub, strUserId)
             };
 
             var jwt = new JwtSecurityToken(claims: claims, signingCredentials: signingCredentials);
 
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-            return new JwtPacket() { Token = encodedJwt, FirstName = user.FirstName };
+            return new JwtPacket() { Token = encodedJwt, FirstName = strFirstName };
         }
     }
 

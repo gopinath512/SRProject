@@ -8,9 +8,10 @@ using SRIndia_Repository;
 namespace SRIndia.Migrations
 {
     [DbContext(typeof(SRIndiaContext))]
-    partial class SRIndiaContextModelSnapshot : ModelSnapshot
+    [Migration("20171028103507__v5")]
+    partial class _v5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2")
@@ -157,6 +158,8 @@ namespace SRIndia.Migrations
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256);
+
+                    b.Property<string>("Password");
 
                     b.Property<string>("PasswordHash");
 

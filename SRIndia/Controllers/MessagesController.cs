@@ -71,11 +71,9 @@ namespace MessageBoardBackend.Controllers
         public IActionResult GetMessagesByMessageId(string messageId)
         {
             var MessageEntity = _messageInfoRepository.GetMessagesByMessageId(messageId,true);
-           
             var results = Mapper.Map<MessageAlongWithReplyDto>(MessageEntity.FirstOrDefault());
             return Ok(results);
         }
-
 
         [Authorize]
         [HttpPost]

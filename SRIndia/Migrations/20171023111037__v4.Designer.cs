@@ -8,9 +8,10 @@ using SRIndia_Repository;
 namespace SRIndia.Migrations
 {
     [DbContext(typeof(SRIndiaContext))]
-    partial class SRIndiaContextModelSnapshot : ModelSnapshot
+    [Migration("20171023111037__v4")]
+    partial class _v4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2")
@@ -133,9 +134,9 @@ namespace SRIndia.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
 
-                    b.Property<DateTime?>("CreatedDate");
+                    b.Property<DateTime>("CreatedDate");
 
-                    b.Property<DateTime?>("DOB");
+                    b.Property<DateTime>("DOB");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256);
@@ -150,13 +151,15 @@ namespace SRIndia.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd");
 
-                    b.Property<DateTime?>("ModifiedDate");
+                    b.Property<DateTime>("ModifiedDate");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256);
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256);
+
+                    b.Property<string>("Password");
 
                     b.Property<string>("PasswordHash");
 
