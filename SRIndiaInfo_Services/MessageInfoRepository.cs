@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using SRIndia_Repository;
@@ -10,9 +11,9 @@ namespace SRIndiaInfo_Services
 {
     public class MessageInfoRepository : IMessageInfoRepository
     {
-        private SRIndiaContext _context;
+        private readonly SrIndiaContext _context;
 
-        public MessageInfoRepository(SRIndiaContext context)
+        public MessageInfoRepository(SrIndiaContext context)
         {
             _context = context;
         }
@@ -29,10 +30,19 @@ namespace SRIndiaInfo_Services
             _context.Messages.Add(message);
         }
 
+
+        public void AddMessageImage(Message message, ICollection<MessageImages> images)
+        {
+            foreach (var image in images)
+            {
+                message.MessageImages.Add(image);
+            }
+        }
+
         public void AddMessageReply(string strMessageId, MessageReply messageReply)
         {
-            var Message = GetMessagesByMessageId(strMessageId,true).FirstOrDefault();
-            Message.MessageReply.Add(messageReply);
+            var message = GetMessagesByMessageId(strMessageId,true).FirstOrDefault();
+            message?.MessageReply.Add(messageReply);
         }
 
         public void DeleteMessage(Message message)
@@ -76,22 +86,29 @@ namespace SRIndiaInfo_Services
                 return _context.Messages.Include(c => c.MessageReply)
                     .Where(c => c.Id == strMessageId).ToList();
             }
-            return _context.Messages.Where(c => c.Id == strMessageId).ToList();
+
+            return _context.Messages.Include(c => c.MessageImages).Where(c => c.Id == strMessageId).ToList();
         }
 
-        public MessageReply GetMessagesReplyMessageId(string strMessageId, string strReplyId)
+        public MessageReply GetMessagesReplyByMessageId(string strMessageId, string strReplyId)
         {
-                return _context.MessageReply.Where(m => m.Id == strReplyId && m.MessageId == strMessageId).FirstOrDefault();
+                return _context.MessageReply.FirstOrDefault(m => m.Id == strReplyId && m.MessageId == strMessageId);
         }
+
+        public IEnumerable<MessageImages> GetMessageImagesByMessageId(string strMessageId)
+        {
+            return _context.MessageImages.Where(m => m.MessageId == strMessageId).ToList();
+        }
+
 
         public IEnumerable<Message> GetMessagesByUserId(string strUserId)
         {
-            return _context.Messages.Where(c => c.UserId == strUserId).ToList();
+            return _context.Messages.Include(c => c.MessageImages).Where(c => c.UserId == strUserId).ToList();
         }
 
         public IEnumerable<Message> GetMessages()
         {
-            return _context.Messages.OrderBy(c => c.Id).ToList();
+            return _context.Messages.Include(c => c.MessageImages).OrderBy(c => c.Id).ToList();
         }
 
         public bool Save()

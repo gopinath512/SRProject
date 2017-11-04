@@ -7,14 +7,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SRIndia_Repository
 {
-    public class SRIndiaContext : IdentityDbContext<AppUser>
+    public class SrIndiaContext : IdentityDbContext<AppUser>
     {
-        public SRIndiaContext(DbContextOptions options) : base(options)
+        public SrIndiaContext(DbContextOptions options) : base(options)
         {
             
         }
 
         public DbSet<Message> Messages { get; set; }
+
+        public DbSet<MessageImages> MessageImages { get; set; }
+
         public DbSet<MessageReply> MessageReply { get; set; }
     }
 }

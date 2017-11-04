@@ -10,6 +10,8 @@ namespace SRIndia_Repository
         public string LastName { get; set; }
         public DateTime? DOB { get; set; }
         public string Sex { get; set; }
+        public string ProfileBGImgId { get; set; }
+        public string AvatarImgId { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
     }

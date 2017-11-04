@@ -42,10 +42,10 @@ namespace SRIndia
             {
                 config.User.RequireUniqueEmail = true;
                 config.Password.RequiredLength = 8;
-            }).AddEntityFrameworkStores<SRIndiaContext>();
+            }).AddEntityFrameworkStores<SrIndiaContext>();
 
             
-            services.AddEntityFrameworkSqlServer().AddDbContext<SRIndiaContext>(opt => opt.UseSqlServer(_Configuration["ConnectionStrings:SRIndiaConnection"], b => b.MigrationsAssembly("SRIndia")));
+            services.AddEntityFrameworkSqlServer().AddDbContext<SrIndiaContext>(opt => opt.UseSqlServer(_Configuration["ConnectionStrings:SRIndiaConnection"], b => b.MigrationsAssembly("SRIndia")));
 
             //var connectionString = Startup._Configuration["connectionStrings:cityInfoDBConnectionString"];
             //services.AddDbContext<SRIndiaContext>(o => o.UseSqlServer(connectionString));
@@ -115,7 +115,7 @@ namespace SRIndia
             //SeedData(app.ApplicationServices.GetService<SRIndiaContext>());
         }
 
-        public void SeedData(SRIndiaContext context)
+        public void SeedData(SrIndiaContext context)
         {
             //context.Users.Add(new AppUser { Email = "b2", FirstName = "Tim12", Password = "aq2"});
            

@@ -1,14 +1,19 @@
+using System;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SRIndia.Common;
 using SRIndia_Models;
 using SRIndia_Repository;
 using SRIndiaInfo_Services;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 
-namespace MessageBoardBackend.Controllers
+namespace SRIndia.Controllers
 {
    
 
@@ -18,6 +23,7 @@ namespace MessageBoardBackend.Controllers
     public class UsersController : Controller
     {
         private IUserInfoRepository _userInfoRepository;
+        private ILogger<MessagesController> _logger;
 
         public UsersController(IUserInfoRepository userInfoRepository)
         {
@@ -54,6 +60,62 @@ namespace MessageBoardBackend.Controllers
             }
 
             return Ok(userEntity);
+        }
+
+        [HttpPost]
+        [Route("upload")]
+        [Authorize]
+        public IActionResult Upload(IFormFile file)
+        {
+            var imgId = string.Empty;
+            try
+            {
+                UploadeResponse objResult = FileUpload.Upload(file);
+                if (!objResult.Success)
+                {
+                    return StatusCode(500,
+                        new UploadeResponse {ImageID = imgId, Success = false, ErrorDescription = objResult.ErrorDescription });
+                }
+                imgId = objResult.ImageID;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical($"Exception while uploading image.", ex);
+            }
+            return Ok(new UploadeResponse { ImageID = imgId, Success = true });
+        }
+
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        [Authorize]
+        [Route("upload")]
+        public async Task<IActionResult> Upload()
+        {
+            FormValueProvider formModel;
+            using (var stream = System.IO.File.Create("c:\\temp\\myfile.temp"))
+            {
+                formModel = await Request.StreamFile(stream);
+            }
+
+            var viewModel = new MyViewModel();
+
+            var bindingSuccessful = await TryUpdateModelAsync(viewModel, prefix: "",
+                valueProvider: formModel);
+
+            if (!bindingSuccessful)
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+            }
+
+            return Ok(viewModel);
+        }
+        
+        public class MyViewModel
+        {
+            public string Username { get; set; }
         }
 
         AppUser GetSecureUser()

@@ -7,7 +7,7 @@ using SRIndia_Repository;
 
 namespace SRIndia.Migrations
 {
-    [DbContext(typeof(SRIndiaContext))]
+    [DbContext(typeof(SrIndiaContext))]
     [Migration("20171028103507__v5")]
     partial class _v5
     {

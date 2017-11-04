@@ -8,8 +8,8 @@ namespace SRIndiaInfo_Services
 {
     public class UserInfoRepository : PasswordHasher<AppUser>, IUserInfoRepository
     {
-        private SRIndiaContext _context;
-        public UserInfoRepository(SRIndiaContext context)
+        private readonly SrIndiaContext _context;
+        public UserInfoRepository(SrIndiaContext context)
         {
             _context = context;
         }
