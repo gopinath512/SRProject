@@ -11,6 +11,7 @@ namespace SRIndiaInfo_Services
         bool MessageExists(string messageId);
 
         void AddMessage(Message message);
+        void AddMessageImage(Message message, ICollection<MessageImages> images);
 
         void AddMessageReply(string strMessageId, MessageReply messageReply);
 
@@ -22,7 +23,9 @@ namespace SRIndiaInfo_Services
 
         IEnumerable<Message> GetMessagesByMessageId(string strMessageId, bool includeReplies);
 
-        MessageReply GetMessagesReplyMessageId(string strMessageId, string strReplyId);
+        MessageReply GetMessagesReplyByMessageId(string strMessageId, string strReplyId);
+
+        IEnumerable<MessageImages> GetMessageImagesByMessageId(string strMessageId);
 
         IEnumerable<Message> GetMessagesByUserId(string strUserId);
 

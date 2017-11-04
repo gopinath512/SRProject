@@ -16,7 +16,10 @@ namespace SRIndia_Models
         public string Text { get; set; }
         public int CatId { get; set; }
         public int Type { get; set; }
-        public string ImgId { get; set; }
+
+        public ICollection<MessageImagesDto> MessageImages { get; set; }
+            = new List<MessageImagesDto>();
+
         public string UserId { get; set; }
         public DateTime ModifiedDate { get; set; }
     }

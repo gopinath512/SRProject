@@ -7,7 +7,7 @@ using SRIndia_Repository;
 
 namespace SRIndia.Migrations
 {
-    [DbContext(typeof(SRIndiaContext))]
+    [DbContext(typeof(SrIndiaContext))]
     partial class SRIndiaContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -130,6 +130,8 @@ namespace SRIndia.Migrations
 
                     b.Property<int>("AccessFailedCount");
 
+                    b.Property<string>("AvatarImgId");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
 
@@ -164,6 +166,8 @@ namespace SRIndia.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed");
 
+                    b.Property<string>("ProfileBGImgId");
+
                     b.Property<string>("SecurityStamp");
 
                     b.Property<string>("Sex");
@@ -197,9 +201,6 @@ namespace SRIndia.Migrations
 
                     b.Property<DateTime>("CreatedDate");
 
-                    b.Property<string>("ImgId")
-                        .IsRequired();
-
                     b.Property<int>("MessageNumber");
 
                     b.Property<DateTime>("ModifiedDate");
@@ -229,6 +230,28 @@ namespace SRIndia.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("SRIndia_Repository.MessageImages", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<DateTime>("CreatedDate");
+
+                    b.Property<string>("ImgId")
+                        .IsRequired();
+
+                    b.Property<string>("MessageId")
+                        .IsRequired();
+
+                    b.Property<DateTime>("ModifiedDate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId");
+
+                    b.ToTable("MessageImages");
                 });
 
             modelBuilder.Entity("SRIndia_Repository.MessageReply", b =>
@@ -304,6 +327,14 @@ namespace SRIndia.Migrations
                     b.HasOne("SRIndia_Repository.AppUser", "AppUser")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SRIndia_Repository.MessageImages", b =>
+                {
+                    b.HasOne("SRIndia_Repository.Message", "Message")
+                        .WithMany("MessageImages")
+                        .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

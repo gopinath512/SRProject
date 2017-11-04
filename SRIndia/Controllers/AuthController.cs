@@ -25,7 +25,7 @@ namespace SRIndia.Controllers
     public class AuthController : Controller
     {
 
-        private IUserInfoRepository _userInfoRepository;
+        private readonly IUserInfoRepository _userInfoRepository;
 
         public AuthController(IUserInfoRepository userInfoRepository)
         {
@@ -40,8 +40,8 @@ namespace SRIndia.Controllers
             if (userEntity == null)
                 return NotFound("email or password incorrect");
 
-            var newUser = Mapper.Map<UserDto>(userEntity);
-            return Ok(CreateJwtPacket(newUser.Id, newUser.FirstName));
+            var newUser = Mapper.Map<UserLoginDto>(userEntity);
+            return Ok(CreateJwtPacket(userEntity.Id, userEntity.FirstName));
         }
        
         [HttpPost("register")]

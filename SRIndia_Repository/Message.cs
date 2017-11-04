@@ -37,10 +37,6 @@ namespace SRIndia_Repository
         [MaxLength(3)]
         public int Type { get; set; }
 
-        [Required]
-        public string ImgId { get; set; }
-
-        
         [ForeignKey("UserId")]
         public AppUser AppUser { get; set; }
 
@@ -55,5 +51,9 @@ namespace SRIndia_Repository
 
         public ICollection<MessageReply> MessageReply { get; set; }
        = new List<MessageReply>();
+
+        public ICollection<MessageImages> MessageImages { get; set; }
+            = new List<MessageImages>();
+
     }
 }

@@ -14,33 +14,34 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using SRIndia.Common;
 
-namespace MessageBoardBackend.Controllers
+namespace SRIndia.Controllers
 {
     [Produces("application/json")]
     [Route("api/Messages")]
     [EnableCors("Cors")]
     public class MessagesController : Controller
     {
-        private IMessageInfoRepository _messageInfoRepository;
-        private IUserInfoRepository _userInfoRepository;
-        private IHostingEnvironment _hostingEnv;
-        private ILogger<MessagesController> _logger;
+        private readonly IMessageInfoRepository _messageInfoRepository;
+        private readonly IUserInfoRepository _userInfoRepository;
+        private readonly ILogger<MessagesController> _logger;
 
         public MessagesController(IMessageInfoRepository messageContext, IUserInfoRepository userContext, IHostingEnvironment env, ILogger<MessagesController> logger)
         {
             _messageInfoRepository = messageContext;
             _userInfoRepository = userContext;
-            _hostingEnv = env;
             _logger = logger;
         }
 
         [HttpGet()]
         public IActionResult Get()
         {
-            var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.All);
-            var results = Mapper.Map<IEnumerable<MessageDto>>(MessageEntity);
-            _logger.LogCritical($"Exception while adding new message.", "test");
+            var messageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.All);
+            var results = Mapper.Map<IEnumerable<MessageDto>>(messageEntity);
+           
             return Ok(results);
         }
 
@@ -54,8 +55,8 @@ namespace MessageBoardBackend.Controllers
                 return NotFound("User id is empty");
             }
 
-            var MessageEntity =  _messageInfoRepository.GetMessagesByTypes(MessageTypes.UserId, userId);
-            var results = Mapper.Map<IEnumerable<MessageDto>>(MessageEntity);
+            var messageEntity =  _messageInfoRepository.GetMessagesByTypes(MessageTypes.UserId, userId);
+            var results = Mapper.Map<IEnumerable<MessageDto>>(messageEntity);
             return Ok(results);
         }
 
@@ -70,8 +71,8 @@ namespace MessageBoardBackend.Controllers
         [HttpGet("{messageid}")]
         public IActionResult GetMessagesByMessageId(string messageId)
         {
-            var MessageEntity = _messageInfoRepository.GetMessagesByMessageId(messageId,true);
-            var results = Mapper.Map<MessageAlongWithReplyDto>(MessageEntity.FirstOrDefault());
+            var messageEntity = _messageInfoRepository.GetMessagesByMessageId(messageId,true);
+            var results = Mapper.Map<MessageAlongWithReplyDto>(messageEntity.FirstOrDefault());
             return Ok(results);
         }
 
@@ -105,14 +106,14 @@ namespace MessageBoardBackend.Controllers
         {
             try
             {
-                var MessageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.MessageId, messageid);
+                var messageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.MessageId, messageid);
                 MessageForUpdateDto messageobj = message.ToObject<MessageForUpdateDto>();
-                Mapper.Map(messageobj, MessageEntity);
+                Mapper.Map(messageobj, messageEntity);
                 if (!_messageInfoRepository.Save())
                 {
                     return StatusCode(500, new UploadeResponse { Success = false, ErrorDescription = "Error while updating message" });
                 }
-                return Ok(MessageEntity);
+                return Ok(messageEntity);
             }
             catch (Exception ex)
             {
@@ -124,33 +125,65 @@ namespace MessageBoardBackend.Controllers
 
         [HttpPost]
         [Route("upload")]
+        [Authorize]
         public IActionResult Upload(IFormFile file)
         {
             var imgId = string.Empty;
             try
             {
-                long size = 0;
-
-                var filename = ContentDispositionHeaderValue
-                            .Parse(file.ContentDisposition)
-                            .FileName
-                            .Trim('"');
-                filename = Guid.NewGuid() + "_" + filename;
-                imgId = filename;
-                filename = _hostingEnv.WebRootPath + "\\Images" + $@"\{filename}";
-                size += file.Length;
-                using (FileStream fs = System.IO.File.Create(filename))
+                UploadeResponse objResult = FileUpload.Upload(file);
+                if (!objResult.Success)
                 {
-                    file.CopyTo(fs);
-                    fs.Flush();
+                    return StatusCode(500,
+                        new UploadeResponse
+                        {
+                            ImageID = imgId,
+                            Success = false,
+                            ErrorDescription = objResult.ErrorDescription
+                        });
                 }
+                imgId = objResult.ImageID;
             }
             catch (Exception ex)
             {
                 _logger.LogCritical($"Exception while uploading image.", ex);
-                return StatusCode(500, new UploadeResponse { ImageID = imgId, Success = false, ErrorDescription = ex.Message });
+                return StatusCode(500,
+                    new UploadeResponse {ImageID = imgId, Success = false, ErrorDescription = ex.Message});
             }
-            return Ok(new UploadeResponse { ImageID = imgId, Success = true });
+            return Ok(new UploadeResponse {ImageID = imgId, Success = true});
+        }
+
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        [Authorize]
+        [Route("upload")]
+        public async Task<IActionResult> Upload()
+        {
+            FormValueProvider formModel;
+            using (var stream = System.IO.File.Create("c:\\temp\\myfile.temp"))
+            {
+                formModel = await Request.StreamFile(stream);
+            }
+
+            var viewModel = new MyViewModel();
+
+            var bindingSuccessful = await TryUpdateModelAsync(viewModel, prefix: "",
+                valueProvider: formModel);
+
+            if (!bindingSuccessful)
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+            }
+
+            return Ok(viewModel);
+        }
+
+        public class MyViewModel
+        {
+            public string Username { get; set; }
         }
 
         string GetSecureUserId()
