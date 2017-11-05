@@ -35,7 +35,7 @@ namespace SRIndiaInfo_Services
         {
             foreach (var image in images)
             {
-                message.MessageImages.Add(image);
+                _context.MessageImages.Add(image);
             }
         }
 

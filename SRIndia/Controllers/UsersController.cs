@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SRIndia.Controllers
 {
-   
+
 
     [Produces("application/json")]
     [Route("api/Users")]
@@ -24,10 +24,13 @@ namespace SRIndia.Controllers
     {
         private IUserInfoRepository _userInfoRepository;
         private ILogger<MessagesController> _logger;
+        private readonly IFileUpload _fileUploade;
 
-        public UsersController(IUserInfoRepository userInfoRepository)
+        public UsersController(IUserInfoRepository userInfoRepository, IFileUpload fileUploade)
         {
             _userInfoRepository = userInfoRepository;
+            _fileUploade = fileUploade;
+
         }
 
         [HttpGet("{id}")]
@@ -40,12 +43,19 @@ namespace SRIndia.Controllers
 
             return Ok(user);
         }
-        
+
         [Authorize]
         [HttpGet("me")]
         public ActionResult Get()
         {
             return Ok(Mapper.Map<UserDto>(GetSecureUser()));
+        }
+
+        [HttpGet("getAll")]
+        public ActionResult GetAllUsers()
+        {
+            var response = _userInfoRepository.GetUsers();
+            return Ok(response);
         }
 
         [Authorize]
@@ -54,7 +64,7 @@ namespace SRIndia.Controllers
         {
             var userEntity = GetSecureUser();
             Mapper.Map(profileData, userEntity);
-           if(!_userInfoRepository.Save())
+            if (!_userInfoRepository.Save())
             {
                 return StatusCode(500, new UploadeResponse { Success = false, ErrorDescription = "Error while saving while updating" });
             }
@@ -70,11 +80,11 @@ namespace SRIndia.Controllers
             var imgId = string.Empty;
             try
             {
-                UploadeResponse objResult = FileUpload.Upload(file);
+                UploadeResponse objResult = _fileUploade.Upload(file);
                 if (!objResult.Success)
                 {
                     return StatusCode(500,
-                        new UploadeResponse {ImageID = imgId, Success = false, ErrorDescription = objResult.ErrorDescription });
+                        new UploadeResponse { ImageID = imgId, Success = false, ErrorDescription = objResult.ErrorDescription });
                 }
                 imgId = objResult.ImageID;
             }
@@ -85,34 +95,34 @@ namespace SRIndia.Controllers
             return Ok(new UploadeResponse { ImageID = imgId, Success = true });
         }
 
-        [HttpPost]
-        [DisableFormValueModelBinding]
-        [Authorize]
-        [Route("upload")]
-        public async Task<IActionResult> Upload()
-        {
-            FormValueProvider formModel;
-            using (var stream = System.IO.File.Create("c:\\temp\\myfile.temp"))
-            {
-                formModel = await Request.StreamFile(stream);
-            }
+        //[HttpPost]
+        //[DisableFormValueModelBinding]
+        //[Authorize]
+        //[Route("upload")]
+        //public async Task<IActionResult> Upload()
+        //{
+        //    FormValueProvider formModel;
+        //    using (var stream = System.IO.File.Create("c:\\temp\\myfile.temp"))
+        //    {
+        //        formModel = await Request.StreamFile(stream);
+        //    }
 
-            var viewModel = new MyViewModel();
+        //    var viewModel = new MyViewModel();
 
-            var bindingSuccessful = await TryUpdateModelAsync(viewModel, prefix: "",
-                valueProvider: formModel);
+        //    var bindingSuccessful = await TryUpdateModelAsync(viewModel, prefix: "",
+        //        valueProvider: formModel);
 
-            if (!bindingSuccessful)
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-            }
+        //    if (!bindingSuccessful)
+        //    {
+        //        if (!ModelState.IsValid)
+        //        {
+        //            return BadRequest(ModelState);
+        //        }
+        //    }
 
-            return Ok(viewModel);
-        }
-        
+        //    return Ok(viewModel);
+        //}
+
         public class MyViewModel
         {
             public string Username { get; set; }
