@@ -11,7 +11,6 @@ namespace SRIndia_Repository
     {
         public string Id { get; set; }
 
-        [Required]
         public int MessageNumber { get; set; }
 
         [Required]
@@ -23,7 +22,7 @@ namespace SRIndia_Repository
 
         [Required]
         [MaxLength(200)]
-        public string Topic { get; set; }
+        public string Topic { get; set; } = "Default";
 
         [Required]
         [MaxLength(200)]
@@ -44,10 +43,10 @@ namespace SRIndia_Repository
         public string UserId { get; set; }
 
         [Required]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = System.DateTime.Now;
 
-        [Required]
-        public DateTime ModifiedDate { get; set; }
+
+        public DateTime ModifiedDate { get; set; } = System.DateTime.Now;
 
         public ICollection<MessageReply> MessageReply { get; set; }
        = new List<MessageReply>();

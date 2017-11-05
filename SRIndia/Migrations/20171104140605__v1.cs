@@ -43,20 +43,25 @@ namespace SRIndia.Migrations
                 {
                     Id = table.Column<string>(nullable: false),
                     AccessFailedCount = table.Column<int>(nullable: false),
+                    AvatarImgId = table.Column<string>(nullable: true),
                     ConcurrencyStamp = table.Column<string>(nullable: true),
+                    CreatedDate = table.Column<DateTime>(nullable: true),
+                    DOB = table.Column<DateTime>(nullable: true),
                     Email = table.Column<string>(maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(nullable: false),
                     FirstName = table.Column<string>(nullable: true),
                     LastName = table.Column<string>(nullable: true),
                     LockoutEnabled = table.Column<bool>(nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
+                    ModifiedDate = table.Column<DateTime>(nullable: true),
                     NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
-                    Password = table.Column<string>(nullable: true),
                     PasswordHash = table.Column<string>(nullable: true),
                     PhoneNumber = table.Column<string>(nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(nullable: false),
+                    ProfileBGImgId = table.Column<string>(nullable: true),
                     SecurityStamp = table.Column<string>(nullable: true),
+                    Sex = table.Column<string>(nullable: true),
                     TwoFactorEnabled = table.Column<bool>(nullable: false),
                     UserName = table.Column<string>(maxLength: 256, nullable: true)
                 },
@@ -157,9 +162,14 @@ namespace SRIndia.Migrations
                 {
                     Id = table.Column<string>(nullable: false),
                     CatId = table.Column<int>(maxLength: 3, nullable: false),
-                    ImgId = table.Column<string>(nullable: false),
+                    ClickCount = table.Column<int>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false),
+                    MessageNumber = table.Column<int>(nullable: false),
+                    ModifiedDate = table.Column<DateTime>(nullable: false),
                     Owner = table.Column<string>(maxLength: 50, nullable: false),
+                    ReplyCount = table.Column<int>(nullable: false),
                     Text = table.Column<string>(maxLength: 200, nullable: false),
+                    Topic = table.Column<string>(maxLength: 200, nullable: false),
                     Type = table.Column<int>(maxLength: 3, nullable: false),
                     UserId = table.Column<string>(nullable: false)
                 },
@@ -175,21 +185,44 @@ namespace SRIndia.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ReplyMessages",
+                name: "MessageImages",
                 columns: table => new
                 {
                     Id = table.Column<string>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false),
+                    ImgId = table.Column<string>(nullable: false),
+                    MessageId = table.Column<string>(nullable: false),
+                    ModifiedDate = table.Column<DateTime>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MessageImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MessageImages_Messages_MessageId",
+                        column: x => x.MessageId,
+                        principalTable: "Messages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MessageReply",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    CreatedDate = table.Column<DateTime>(nullable: false),
                     ImgId = table.Column<string>(nullable: false),
                     MessageId = table.Column<string>(nullable: false),
                     Owner = table.Column<string>(nullable: false),
-                    ReplyUserId = table.Column<string>(nullable: true),
+                    ReplyNumber = table.Column<int>(nullable: false),
+                    ReplyUserId = table.Column<string>(nullable: false),
                     Text = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ReplyMessages", x => x.Id);
+                    table.PrimaryKey("PK_MessageReply", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ReplyMessages_Messages_MessageId",
+                        name: "FK_MessageReply_Messages_MessageId",
                         column: x => x.MessageId,
                         principalTable: "Messages",
                         principalColumn: "Id",
@@ -239,8 +272,13 @@ namespace SRIndia.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReplyMessages_MessageId",
-                table: "ReplyMessages",
+                name: "IX_MessageImages_MessageId",
+                table: "MessageImages",
+                column: "MessageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MessageReply_MessageId",
+                table: "MessageReply",
                 column: "MessageId");
         }
 
@@ -262,7 +300,10 @@ namespace SRIndia.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "ReplyMessages");
+                name: "MessageImages");
+
+            migrationBuilder.DropTable(
+                name: "MessageReply");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

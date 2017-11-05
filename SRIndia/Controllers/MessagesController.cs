@@ -28,12 +28,15 @@ namespace SRIndia.Controllers
         private readonly IMessageInfoRepository _messageInfoRepository;
         private readonly IUserInfoRepository _userInfoRepository;
         private readonly ILogger<MessagesController> _logger;
+        private readonly IFileUpload _fileUploade;
 
-        public MessagesController(IMessageInfoRepository messageContext, IUserInfoRepository userContext, IHostingEnvironment env, ILogger<MessagesController> logger)
+
+        public MessagesController(IMessageInfoRepository messageContext, IUserInfoRepository userContext, IHostingEnvironment env, ILogger<MessagesController> logger, IFileUpload fileUploade)
         {
             _messageInfoRepository = messageContext;
             _userInfoRepository = userContext;
             _logger = logger;
+            _fileUploade = fileUploade;
         }
 
         [HttpGet()]
@@ -41,7 +44,7 @@ namespace SRIndia.Controllers
         {
             var messageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.All);
             var results = Mapper.Map<IEnumerable<MessageDto>>(messageEntity);
-           
+
             return Ok(results);
         }
 
@@ -50,12 +53,12 @@ namespace SRIndia.Controllers
         public IActionResult GetMessageByUser()
         {
             var userId = HttpContext.User.Claims.First().Value;
-            if(userId == null)
+            if (userId == null)
             {
                 return NotFound("User id is empty");
             }
 
-            var messageEntity =  _messageInfoRepository.GetMessagesByTypes(MessageTypes.UserId, userId);
+            var messageEntity = _messageInfoRepository.GetMessagesByTypes(MessageTypes.UserId, userId);
             var results = Mapper.Map<IEnumerable<MessageDto>>(messageEntity);
             return Ok(results);
         }
@@ -71,13 +74,14 @@ namespace SRIndia.Controllers
         [HttpGet("{messageid}")]
         public IActionResult GetMessagesByMessageId(string messageId)
         {
-            var messageEntity = _messageInfoRepository.GetMessagesByMessageId(messageId,true);
+            var messageEntity = _messageInfoRepository.GetMessagesByMessageId(messageId, true);
             var results = Mapper.Map<MessageAlongWithReplyDto>(messageEntity.FirstOrDefault());
             return Ok(results);
         }
 
-        [Authorize]
+        
         [HttpPost]
+        [Authorize]
         public IActionResult Post([FromBody] JObject message)
         {
             try
@@ -93,15 +97,17 @@ namespace SRIndia.Controllers
                 }
                 return Ok(newMessage);
             }
-            catch(Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogCritical($"Exception while adding new message.", ex);
                 return StatusCode(500, "A problem happened while handling your request.");
             }
-           
+
         }
 
         [Authorize]
         [HttpPost]
+        [Route("updateMessage")]
         public IActionResult UpdateMessage([FromBody] JObject message, string messageid)
         {
             try
@@ -124,14 +130,15 @@ namespace SRIndia.Controllers
         }
 
         [HttpPost]
-        [Route("upload")]
         [Authorize]
+        [Route("upload")]
+
         public IActionResult Upload(IFormFile file)
         {
             var imgId = string.Empty;
             try
             {
-                UploadeResponse objResult = FileUpload.Upload(file);
+                UploadeResponse objResult = _fileUploade.Upload(file);
                 if (!objResult.Success)
                 {
                     return StatusCode(500,
@@ -148,19 +155,45 @@ namespace SRIndia.Controllers
             {
                 _logger.LogCritical($"Exception while uploading image.", ex);
                 return StatusCode(500,
-                    new UploadeResponse {ImageID = imgId, Success = false, ErrorDescription = ex.Message});
+                    new UploadeResponse { ImageID = imgId, Success = false, ErrorDescription = ex.Message });
             }
-            return Ok(new UploadeResponse {ImageID = imgId, Success = true});
+            return Ok(new UploadeResponse { ImageID = imgId, Success = true });
         }
+
+        //[HttpPost]
+        //[Route("upload")]
+        //public async Task<IActionResult> Post(List<IFormFile> files)
+        //{
+        //    long size = files.Sum(f => f.Length);
+
+        //    //full path to file in temp location
+        //    var filePath = Path.GetTempFileName();
+
+        //    foreach (var formFile in files)
+        //    {
+        //        if (formFile.Length > 0)
+        //        {
+        //            using (var stream = new FileStream(filePath, FileMode.Create))
+        //            {
+        //                await formFile.CopyToAsync(stream);
+        //            }
+        //        }
+        //    }
+
+        //    //process uploaded files
+        //    //Don't rely on or trust the FileName property without validation.
+
+        //    return Ok(new { filePath });
+        //}
 
         [HttpPost]
         [DisableFormValueModelBinding]
-        [Authorize]
-        [Route("upload")]
+
+        [Route("uploadstreaming")]
         public async Task<IActionResult> Upload()
         {
             FormValueProvider formModel;
-            using (var stream = System.IO.File.Create("c:\\temp\\myfile.temp"))
+            using (var stream = System.IO.File.Create(@"C:\Users\Gopinath\AppData\Local\Temp\myfile.temp"))
             {
                 formModel = await Request.StreamFile(stream);
             }
@@ -189,7 +222,7 @@ namespace SRIndia.Controllers
         string GetSecureUserId()
         {
             var id = HttpContext.User.Claims.First().Value;
-            if(_userInfoRepository.UserExists(id))
+            if (_userInfoRepository.UserExists(id))
             {
                 return id;
             }

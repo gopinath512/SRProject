@@ -8,17 +8,23 @@ using System.IO;
 
 namespace SRIndia.Common
 {
-    public class FileUpload
+
+    public interface IFileUpload
     {
-        private static IHostingEnvironment _hostingEnv;
-        private  static ILogger<FileUpload> _logger;
+        UploadeResponse Upload(IFormFile file);
+    }
+    public class FileUpload : IFileUpload
+    {
+        private IHostingEnvironment _hostingEnv;
+        private ILogger<FileUpload> _logger;
+
         public FileUpload(IHostingEnvironment env, ILogger<FileUpload> logger)
         {
             _hostingEnv = env;
             _logger = logger;
         }
 
-        public static UploadeResponse Upload(IFormFile file)
+        public UploadeResponse Upload(IFormFile file)
         {
             var imgId = string.Empty;
             try
@@ -42,9 +48,9 @@ namespace SRIndia.Common
             catch (Exception ex)
             {
                 _logger.LogCritical($"Exception while uploading image.", ex);
-                return  new UploadeResponse { ImageID = imgId, Success = false, ErrorDescription = ex.Message };
+                return new UploadeResponse { ImageID = imgId, Success = false, ErrorDescription = ex.Message };
             }
-            return new UploadeResponse {ImageID = imgId, Success = true};
+            return new UploadeResponse { ImageID = imgId, Success = true };
         }
     }
 }

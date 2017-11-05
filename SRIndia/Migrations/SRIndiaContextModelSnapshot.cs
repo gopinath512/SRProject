@@ -8,7 +8,7 @@ using SRIndia_Repository;
 namespace SRIndia.Migrations
 {
     [DbContext(typeof(SrIndiaContext))]
-    partial class SRIndiaContextModelSnapshot : ModelSnapshot
+    partial class SrIndiaContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

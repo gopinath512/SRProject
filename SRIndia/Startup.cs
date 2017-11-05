@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using SRIndiaInfo_Services;
 using SRIndia_Repository;
 using SRIndia_Models;
+using SRIndia.Common;
 
 namespace SRIndia
 {
@@ -52,12 +53,14 @@ namespace SRIndia
 
             services.AddScoped<IMessageInfoRepository, MessageInfoRepository>();
             services.AddScoped<IUserInfoRepository, UserInfoRepository>();
-
+            services.AddScoped<IFileUpload, FileUpload>();
+            
             // Add framework services.
             services.AddCors(options => options.AddPolicy("Cors", builder =>
             {
                 builder
-                .AllowAnyOrigin()
+                .AllowCredentials()
+                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader();
             }));
@@ -86,13 +89,17 @@ namespace SRIndia
 
             Mapper.Initialize(config =>
             {
-                config.CreateMap<UserDto, AppUser>().ReverseMap();
-                config.CreateMap<UserForCreationDto, AppUser > ();
+                config.CreateMap<UserDto, AppUser>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.Password)).ReverseMap();
+                config.CreateMap<UserForCreationDto, AppUser>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.Password));
                 config.CreateMap<Message, MessageDto > ();
                 config.CreateMap<UserDto, AppUser>();
                 config.CreateMap<AppUser, UserForUpdateDto> ();
                 config.CreateMap<Message, MessageAlongWithReplyDto>();
                 config.CreateMap<MessageReply, MessageReplyDto>();
+                config.CreateMap<MessageImages, MessageImagesDto>();
+                config.CreateMap<MessageForCreationDto, Message>();               
+
+
             });
 
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("this is the secret phrase"));
