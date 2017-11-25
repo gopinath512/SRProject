@@ -79,7 +79,7 @@ namespace SRIndia.Controllers
             return Ok(results);
         }
 
-        
+
         [HttpPost]
         [Authorize]
         public IActionResult Post([FromBody] JObject message)
@@ -88,6 +88,15 @@ namespace SRIndia.Controllers
             {
                 MessageForCreationDto messageobj = message.ToObject<MessageForCreationDto>();
                 var newMessage = Mapper.Map<Message>(messageobj);
+
+                var listOfImages = new List<MessageImages>();
+                foreach (var image in messageobj.ImageId)
+                {
+                    var imageInfo = new MessageImages { ImgId = image };
+                    listOfImages.Add(imageInfo);
+                }
+                newMessage.MessageImages = listOfImages;
+
                 newMessage.UserId = GetSecureUserId() ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(newMessage.UserId)) { return NotFound("User Id not found"); }
                 _messageInfoRepository.AddMessage(newMessage);

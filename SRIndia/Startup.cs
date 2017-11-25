@@ -24,7 +24,7 @@ namespace SRIndia
 {
     public class Startup
     {
-        
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -34,7 +34,7 @@ namespace SRIndia
                 .AddEnvironmentVariables();
             _Configuration = builder.Build();
         }
-        public IConfigurationRoot _Configuration { get;  }
+        public IConfigurationRoot _Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -45,7 +45,7 @@ namespace SRIndia
                 config.Password.RequiredLength = 8;
             }).AddEntityFrameworkStores<SrIndiaContext>();
 
-            
+
             services.AddEntityFrameworkSqlServer().AddDbContext<SrIndiaContext>(opt => opt.UseSqlServer(_Configuration["ConnectionStrings:SRIndiaConnection"], b => b.MigrationsAssembly("SRIndia")));
 
             //var connectionString = Startup._Configuration["connectionStrings:cityInfoDBConnectionString"];
@@ -54,7 +54,7 @@ namespace SRIndia
             services.AddScoped<IMessageInfoRepository, MessageInfoRepository>();
             services.AddScoped<IUserInfoRepository, UserInfoRepository>();
             services.AddScoped<IFileUpload, FileUpload>();
-            
+
             // Add framework services.
             services.AddCors(options => options.AddPolicy("Cors", builder =>
             {
@@ -91,15 +91,13 @@ namespace SRIndia
             {
                 config.CreateMap<UserDto, AppUser>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.Password)).ReverseMap();
                 config.CreateMap<UserForCreationDto, AppUser>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.Password));
-                config.CreateMap<Message, MessageDto > ();
-                config.CreateMap<UserDto, AppUser>();
-                config.CreateMap<AppUser, UserForUpdateDto> ();
+                config.CreateMap<Message, MessageDto>();
+                config.CreateMap<AppUser, UserForUpdateDto>();
                 config.CreateMap<Message, MessageAlongWithReplyDto>();
                 config.CreateMap<MessageReply, MessageReplyDto>();
                 config.CreateMap<MessageImages, MessageImagesDto>();
-                config.CreateMap<MessageForCreationDto, Message>();               
-
-
+                config.CreateMap<MessageForCreationDto, Message>();
+                config.CreateMap<UserLoginDto, AppUser>().ReverseMap();
             });
 
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("this is the secret phrase"));
@@ -125,7 +123,7 @@ namespace SRIndia
         public void SeedData(SrIndiaContext context)
         {
             //context.Users.Add(new AppUser { Email = "b2", FirstName = "Tim12", Password = "aq2"});
-           
+
             //context.Messages.Add(new Message
             //{
             //    Owner = "John",
